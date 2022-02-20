@@ -1,0 +1,10 @@
+#!/bin/ash
+set -e
+
+# -f: foreground
+# -S: syslog
+# -l: loglevel
+exec /usr/sbin/crond -fSl 6
+
+# vim: set ft=bash ts=2 sts=2 expandtab:
+
