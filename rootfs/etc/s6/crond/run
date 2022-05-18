@@ -1,10 +1,3 @@
-#!/bin/ash
-set -e
+#!/bin/sh
 
-# -f: foreground
-# -S: syslog
-# -l: loglevel
-exec /usr/sbin/crond -fSl 6
-
-# vim: set ft=bash ts=2 sts=2 expandtab:
-
+exec /usr/bin/doas /usr/sbin/crond -f -L /dev/stdout

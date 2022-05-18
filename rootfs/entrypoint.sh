@@ -33,13 +33,10 @@ if [ "$(id -u)" -eq 0 ]; then
           /var/cache/bind \
           /var/bind \
           /etc/s6
-  mv /etc/crontabs/root /etc/crontabs/named
-  chmod 0644 /etc/crontabs/named
-  chmod 0755 /usr/sbin/crond
 
   echo ">> configuring rndc"
   if [[ ! -e "${APP_CONF_DIR}"/rndc.key ]]; then
-    rndc-confgen -ap 1953 -u named -c "${APP_CONF_DIR}"/rndc.key
+    rndc-confgen -a -u named -c "${APP_CONF_DIR}"/rndc.key
   fi
   rndc_keyname=$(grep -E ^key "${APP_CONF_DIR}"/rndc.key | cut -d\" -f2)
 
@@ -49,17 +46,6 @@ include "/etc/bind/rndc.key";
 options {
   default-key "$rndc_keyname";
   default-server 127.0.0.1;
-  default-port 1953;
-};
-EOF
-  fi
-
-  if [[ -e "${APP_CONF_DIR}/named.conf" ]] && ! grep -q "$rndc_keyname" "${APP_CONF_DIR}/named.conf"; then
-    cat >>"${APP_CONF_DIR}"/named.conf <<EOF
-include "/etc/bind/rndc.key";
-controls {
-  inet 127.0.0.1 port 1953
-  allow { 127.0.0.1; } keys { "$rndc_keyname"; };
 };
 EOF
   fi
@@ -67,6 +53,11 @@ EOF
   echo ">> create link for syslog redirection"
   install -dm 0750 -o "$APP_USER" -g "$APP_GROUP" /run/syslogd
   ln -s /run/syslogd/syslogd.sock /dev/log
+
+  # drop privileges and re-execute this script unprivileged
+  echo ">> dropping privileges"
+  export HOME="$APP_HOMEDIR" USER="$APP_USER" LOGNAME="$APP_USER" PATH="/usr/local/bin:/bin:/usr/bin"
+  exec /usr/bin/setpriv --reuid="$APP_USER" --regid="$APP_GROUP" --init-groups --inh-caps=-all "$0" "$@"
 fi
 
 # tighten umask for newly created files / dirs
