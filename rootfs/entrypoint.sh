@@ -58,7 +58,7 @@ EOF
   # drop privileges and re-execute this script unprivileged
   echo ">> dropping privileges"
   export HOME="$APP_HOMEDIR" USER="$APP_USER" LOGNAME="$APP_USER" PATH="/usr/local/bin:/bin:/usr/bin"
-  exec /usr/bin/setpriv --reuid="$APP_USER" --regid="$APP_GROUP" --init-groups --inh-caps=-all "$0" "$@"
+  exec /bin/setpriv --reuid="$APP_USER" --regid="$APP_GROUP" --init-groups --inh-caps=-all "$0" "$@"
 fi
 
 # tighten umask for newly created files / dirs
